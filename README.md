@@ -56,4 +56,41 @@ here — it's an availability guardrail. See §7 of the SDD.
 
 ## Development
 
-Coming soon — see the M0–M7 build plan in §8 of the SDD.
+```powershell
+npm install
+Copy-Item .env.example .env   # then fill in your Supabase values
+npm start                     # scan the QR code with Expo Go
+```
+
+Full first-time setup — including the Supabase project, migration, and
+anonymous sign-in — is in [`docs/SETUP.md`](docs/SETUP.md).
+
+### Layout
+
+```
+App.tsx                        entry point
+src/
+  hooks/                       useSession, useGrammarRules
+  lib/                         supabase client, env, secure storage
+  screens/                     ConnectionCheckScreen (M0)
+  types/database.ts            hand-written until the schema settles
+supabase/
+  migrations/0001_init.sql     schema + RLS
+  seed.sql                     starter grammar rule catalogue
+docs/
+  SDD.md                       software design document
+  SETUP.md                     first-time setup
+```
+
+### Progress
+
+- [x] **M0** — Skeleton: Expo app, anonymous auth, one query rendered
+- [ ] **M1** — Proxy + first reply
+- [ ] **M2** — Structured corrections (+ model benchmark)
+- [ ] **M3** — Rule catalogue + collection
+- [ ] **M4** — Vocab of the day
+- [ ] **M5** — Streaming + polish
+- [ ] **M6** — Guardrails
+- [ ] **M7** — Ship it
+
+See §8 of the SDD for what each milestone means.
