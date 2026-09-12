@@ -110,7 +110,12 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      get_chat_quota: {
+        Args: Record<string, never>;
+        Returns: { used: number; cap: number; enabled: boolean }[];
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

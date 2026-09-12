@@ -63,29 +63,33 @@ npm start                     # scan the QR code with Expo Go
 ```
 
 Full first-time setup — including the Supabase project, migration, and
-anonymous sign-in — is in [`docs/SETUP.md`](docs/SETUP.md).
+anonymous sign-in — is in [`docs/SETUP.md`](docs/SETUP.md). Deploying the chat
+endpoint is in [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ### Layout
 
 ```
 App.tsx                        entry point
 src/
-  hooks/                       useSession, useGrammarRules
-  lib/                         supabase client, env, secure storage
-  screens/                     ConnectionCheckScreen (M0)
+  hooks/                       useSession, useChat, useGrammarRules
+  lib/                         supabase client, api, env, secure storage
+  screens/                     ChatScreen
   types/database.ts            hand-written until the schema settles
 supabase/
   migrations/0001_init.sql     schema + RLS
+  migrations/0002_quota.sql    atomic quota reservation + kill switch
+  functions/chat/              the Edge Function that holds the API key
   seed.sql                     starter grammar rule catalogue
 docs/
   SDD.md                       software design document
   SETUP.md                     first-time setup
+  DEPLOY.md                    Edge Function deployment
 ```
 
 ### Progress
 
 - [x] **M0** — Skeleton: Expo app, anonymous auth, one query rendered
-- [ ] **M1** — Proxy + first reply
+- [x] **M1** — Proxy + first reply
 - [ ] **M2** — Structured corrections (+ model benchmark)
 - [ ] **M3** — Rule catalogue + collection
 - [ ] **M4** — Vocab of the day
