@@ -1,12 +1,24 @@
 import { supabase } from './supabase';
 
+export interface SavedCorrection {
+  id: number;
+  rule_id: string | null;
+  original: string;
+  corrected: string;
+  note: string | null;
+}
+
 export interface ChatResponse {
   reply: string;
+  corrections: SavedCorrection[];
+  vocab_gaps: string[];
+  /** True when the model's output failed the schema and we fell back to prose. */
+  degraded: boolean;
   user_message_id: number;
   assistant_message_id: number | null;
   quota: { used: number; cap: number };
   model: string;
-  usage: { prompt_tokens?: number; completion_tokens?: number } | null;
+  usage?: { prompt_tokens?: number; completion_tokens?: number } | null;
 }
 
 /**
@@ -38,6 +50,8 @@ const MESSAGES: Record<string, string> = {
   empty_message: 'Pesannya masih kosong.',
   persist_failed: 'Gagal menyimpan pesan. Coba lagi.',
   quota_check_failed: 'Gagal mengecek jatah harian. Coba lagi.',
+  catalogue_empty:
+    'Katalog grammar masih kosong. Jalankan supabase/seed.sql dulu.',
   internal_error: 'Ada yang error di server. Coba lagi.',
   network: 'Tidak bisa menghubungi server. Cek koneksi internet kamu.',
 };
@@ -89,4 +103,44 @@ export async function fetchQuota(): Promise<Quota> {
   const { data, error } = await supabase.rpc('get_chat_quota').single<Quota>();
   if (error) throw error;
   return data;
+}
+
+/**
+ * Corrections attached to a set of messages, keyed by the message that caused
+ * them. Fetched separately from messages so the chat list can render before
+ * the cards resolve.
+ */
+export async function fetchCorrections(): Promise<
+  Record<number, SavedCorrection[]>
+> {
+  const { data, error } = await supabase
+    .from('corrections')
+    .select('id, message_id, rule_id, original, corrected, note')
+    .eq('dismissed', false)
+    .order('created_at', { ascending: true })
+    .limit(500);
+
+  if (error) throw error;
+
+  const byMessage: Record<number, SavedCorrection[]> = {};
+  for (const row of data ?? []) {
+    if (row.message_id == null) continue;
+    (byMessage[row.message_id] ??= []).push({
+      id: row.id,
+      rule_id: row.rule_id,
+      original: row.original,
+      corrected: row.corrected,
+      note: row.note,
+    });
+  }
+  return byMessage;
+}
+
+/** Hide a correction the learner disagrees with, without deleting the history. */
+export async function dismissCorrection(id: number): Promise<void> {
+  const { error } = await supabase
+    .from('corrections')
+    .update({ dismissed: true })
+    .eq('id', id);
+  if (error) throw error;
 }

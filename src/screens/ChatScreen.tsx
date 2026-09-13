@@ -11,7 +11,16 @@ import {
   View,
 } from 'react-native';
 
-import { ChatError, useMessages, useQuota, useSendMessage } from '../hooks/useChat';
+import { CorrectionCard } from '../components/CorrectionCard';
+import {
+  ChatError,
+  useCorrections,
+  useDismissCorrection,
+  useMessages,
+  useQuota,
+  useRuleMap,
+  useSendMessage,
+} from '../hooks/useChat';
 import { useSession } from '../hooks/useSession';
 import { theme } from '../theme';
 import type { Message } from '../types/database';
@@ -21,8 +30,11 @@ export function ChatScreen() {
   const ready = session.status === 'ready';
 
   const messages = useMessages(ready);
+  const corrections = useCorrections(ready);
+  const rules = useRuleMap(ready);
   const quota = useQuota(ready);
   const send = useSendMessage();
+  const dismiss = useDismissCorrection();
 
   const [draft, setDraft] = useState('');
   const listRef = useRef<FlatList<Message>>(null);
@@ -35,8 +47,7 @@ export function ChatScreen() {
     if (messages.data?.length) scrollToEnd();
   }, [messages.data?.length, scrollToEnd]);
 
-  const exhausted =
-    quota.data != null && quota.data.used >= quota.data.cap;
+  const exhausted = quota.data != null && quota.data.used >= quota.data.cap;
   const disabled = send.isPending || !ready || exhausted;
 
   const onSend = () => {
@@ -45,8 +56,8 @@ export function ChatScreen() {
 
     setDraft('');
     send.mutate(text, {
-      // Give the text back rather than making them retype it. This matters
-      // more than usual here: a failed send still costs a daily request.
+      // Give the text back rather than making them retype it. A failed send
+      // still costs one of the 50 daily requests.
       onError: () => setDraft(text),
       onSuccess: scrollToEnd,
     });
@@ -69,6 +80,10 @@ export function ChatScreen() {
     );
   }
 
+  const remaining = quota.data
+    ? Math.max(quota.data.cap - quota.data.used, 0)
+    : null;
+
   return (
     <KeyboardAvoidingView
       style={styles.screen}
@@ -76,9 +91,9 @@ export function ChatScreen() {
     >
       <View style={styles.header}>
         <Text style={styles.brand}>Miksa</Text>
-        {quota.data && (
+        {remaining != null && (
           <Text style={[styles.quota, exhausted && styles.quotaBad]}>
-            {Math.max(quota.data.cap - quota.data.used, 0)} chat tersisa
+            {remaining} chat tersisa
           </Text>
         )}
       </View>
@@ -87,7 +102,19 @@ export function ChatScreen() {
         ref={listRef}
         data={messages.data ?? []}
         keyExtractor={(m) => String(m.id)}
-        renderItem={({ item }) => <Bubble message={item} />}
+        renderItem={({ item }) => (
+          <View>
+            <Bubble message={item} />
+            {corrections.data?.[item.id]?.map((c) => (
+              <CorrectionCard
+                key={c.id}
+                correction={c}
+                rule={c.rule_id ? rules.data?.[c.rule_id] : undefined}
+                onDismiss={dismiss.mutate}
+              />
+            ))}
+          </View>
+        )}
         contentContainerStyle={styles.list}
         ListEmptyComponent={messages.isPending ? null : <EmptyState />}
         onContentSizeChange={scrollToEnd}
@@ -98,6 +125,14 @@ export function ChatScreen() {
         <View style={styles.typing}>
           <ActivityIndicator size="small" color={theme.color.textMuted} />
           <Text style={styles.typingText}>Miksa lagi ngetik…</Text>
+        </View>
+      )}
+
+      {send.data?.degraded && !send.isPending && (
+        <View style={[styles.banner, styles.bannerWarn]}>
+          <Text style={styles.bannerText}>
+            Balasannya masuk, tapi koreksinya gagal diproses kali ini.
+          </Text>
         </View>
       )}
 
@@ -129,7 +164,6 @@ export function ChatScreen() {
           multiline
           maxLength={2000}
           editable={!disabled}
-          onSubmitEditing={onSend}
         />
         <Pressable
           onPress={onSend}
@@ -164,7 +198,8 @@ function EmptyState() {
       <Text style={styles.emptyTitle}>Ngobrol aja dulu</Text>
       <Text style={styles.emptyBody}>
         Tulis pakai bahasa apa aja — Indonesia, Inggris, atau campur. Miksa
-        bakal bales pakai bahasa Inggris yang gampang dibaca.
+        bakal bales pakai bahasa Inggris, dan kalau ada yang keliru, dijelasin
+        pakai bahasa Indonesia.
       </Text>
     </View>
   );
@@ -231,6 +266,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.color.wrong,
   },
+  bannerWarn: { borderColor: theme.color.border },
   bannerText: { color: theme.color.text, fontSize: 13, lineHeight: 18 },
   composer: {
     flexDirection: 'row',

@@ -451,16 +451,27 @@ open on your phone — never spend a week on work you can't see.
 
 > ### The M2 benchmark — do not skip this
 > The free model's correction quality is **unvalidated** for this specific task:
-> English correction + Indonesian explanation + classification into 60 rule IDs.
+> English correction + Indonesian explanation + classification into 67 rule IDs.
 >
-> At M2, hand-write ~30 sentences with errors you already know the answer to.
-> Run them through. Measure: (a) was the correction right, (b) was the `rule_id`
-> right, (c) was the Indonesian note comprehensible. If `rule_id` accuracy is
-> above ~80%, ship it and never think about this again. If it's below, you have
-> data to decide with instead of a guess.
+> The harness is built and lives in [`bench/`](../bench/README.md): 40 fixtures
+> in the code-switched register the app is for, scored automatically.
 >
-> **This is why the model ID lives in an env var.** Swapping it must stay a
-> one-line change through the entire build.
+> ```powershell
+> $env:OPENROUTER_API_KEY = "sk-or-v1-..."
+> node bench/run.mjs
+> ```
+>
+> It separates four failure modes, because they need different reactions:
+> a **missed** error is annoying; a **wrong rule id** poisons the error history
+> that §1 calls the product's real asset; a **false alarm** on correct English
+> actively teaches nonsense; and **touching the learner's Indonesian**
+> contradicts the premise outright.
+>
+> It prints PASS or FAIL. Below 80% rule accuracy, any Indonesian touched, more
+> than two false alarms, or above 5% schema violations, and it fails.
+>
+> **If it fails, change the model before rewriting the prompt.** That is why the
+> model ID lives in an env var — `supabase secrets set MODEL=...`, no redeploy.
 
 ---
 

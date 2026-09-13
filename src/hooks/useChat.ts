@@ -1,8 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { ChatError, fetchQuota, sendChatMessage } from '../lib/api';
+import {
+  ChatError,
+  dismissCorrection,
+  fetchCorrections,
+  fetchQuota,
+  sendChatMessage,
+  type SavedCorrection,
+} from '../lib/api';
 import { supabase } from '../lib/supabase';
-import type { Message } from '../types/database';
+import type { GrammarRule, Message } from '../types/database';
 
 /** Optimistic rows get a negative id so they never collide with real ones. */
 let tempId = -1;
@@ -23,12 +30,65 @@ export function useMessages(enabled: boolean) {
   });
 }
 
+export function useCorrections(enabled: boolean) {
+  return useQuery({
+    queryKey: ['corrections'],
+    enabled,
+    queryFn: fetchCorrections,
+  });
+}
+
+/** The rule catalogue, for expanding a correction into its full explanation. */
+export function useRuleMap(enabled: boolean) {
+  return useQuery({
+    queryKey: ['grammar_rules'],
+    enabled,
+    staleTime: Infinity,
+    queryFn: async (): Promise<Record<string, GrammarRule>> => {
+      const { data, error } = await supabase.from('grammar_rules').select('*');
+      if (error) throw error;
+      return Object.fromEntries((data ?? []).map((r) => [r.id, r]));
+    },
+  });
+}
+
 export function useQuota(enabled: boolean) {
   return useQuery({
     queryKey: ['quota'],
     enabled,
     queryFn: fetchQuota,
     staleTime: 60_000,
+  });
+}
+
+export function useDismissCorrection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: dismissCorrection,
+    onMutate: async (id: number) => {
+      await qc.cancelQueries({ queryKey: ['corrections'] });
+      const previous = qc.getQueryData<Record<number, SavedCorrection[]>>([
+        'corrections',
+      ]);
+
+      qc.setQueryData<Record<number, SavedCorrection[]>>(
+        ['corrections'],
+        (current) => {
+          if (!current) return current;
+          const next: Record<number, SavedCorrection[]> = {};
+          for (const [key, list] of Object.entries(current)) {
+            const kept = list.filter((c) => c.id !== id);
+            if (kept.length) next[Number(key)] = kept;
+          }
+          return next;
+        },
+      );
+
+      return { previous };
+    },
+    onError: (_e, _id, ctx) => {
+      if (ctx?.previous) qc.setQueryData(['corrections'], ctx.previous);
+    },
   });
 }
 
@@ -58,8 +118,8 @@ export function useSendMessage() {
     },
 
     onError: (_error, _content, context) => {
-      // Roll back the optimistic row. The composer restores the text so the
-      // user does not have to retype it.
+      // Roll back. The composer restores the text so the user does not have to
+      // retype it — a failed send still costs one of the 50 daily requests.
       if (context?.previous) qc.setQueryData(['messages'], context.previous);
     },
 
@@ -67,9 +127,7 @@ export function useSendMessage() {
       const now = new Date().toISOString();
 
       qc.setQueryData<Message[]>(['messages'], (current) => {
-        const rows = (current ?? []).filter(
-          (m) => m.id !== context?.optimisticId,
-        );
+        const rows = (current ?? []).filter((m) => m.id !== context?.optimisticId);
         return [
           ...rows,
           {
@@ -91,6 +149,18 @@ export function useSendMessage() {
         ];
       });
 
+      // Attach the new corrections to the message that caused them, without
+      // refetching the whole set.
+      if (response.corrections.length > 0) {
+        qc.setQueryData<Record<number, SavedCorrection[]>>(
+          ['corrections'],
+          (current) => ({
+            ...(current ?? {}),
+            [response.user_message_id]: response.corrections,
+          }),
+        );
+      }
+
       // The server is authoritative on quota; reuse what it just told us
       // rather than spending another round trip to ask.
       qc.setQueryData(['quota'], (q: unknown) =>
@@ -101,11 +171,11 @@ export function useSendMessage() {
     },
 
     onSettled: () => {
-      // Reconcile against the server: optimistic ids and timestamps are
-      // approximations.
       void qc.invalidateQueries({ queryKey: ['messages'] });
+      void qc.invalidateQueries({ queryKey: ['corrections'] });
     },
   });
 }
 
 export { ChatError };
+export type { SavedCorrection };

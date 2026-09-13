@@ -71,7 +71,8 @@ endpoint is in [`docs/DEPLOY.md`](docs/DEPLOY.md).
 ```
 App.tsx                        entry point
 src/
-  hooks/                       useSession, useChat, useGrammarRules
+  components/                  CorrectionCard
+  hooks/                       useSession, useChat
   lib/                         supabase client, api, env, secure storage
   screens/                     ChatScreen
   types/database.ts            hand-written until the schema settles
@@ -79,7 +80,11 @@ supabase/
   migrations/0001_init.sql     schema + RLS
   migrations/0002_quota.sql    atomic quota reservation + kill switch
   functions/chat/              the Edge Function that holds the API key
-  seed.sql                     starter grammar rule catalogue
+  functions/_shared/prompt.ts  persona, JSON schema, output validation
+  seed.sql                     67-rule grammar catalogue
+bench/
+  fixtures.json                40 scored test cases
+  run.mjs                      model benchmark (SDD §8 gate)
 docs/
   SDD.md                       software design document
   SETUP.md                     first-time setup
@@ -90,8 +95,8 @@ docs/
 
 - [x] **M0** — Skeleton: Expo app, anonymous auth, one query rendered
 - [x] **M1** — Proxy + first reply
-- [ ] **M2** — Structured corrections (+ model benchmark)
-- [ ] **M3** — Rule catalogue + collection
+- [x] **M2** — Structured corrections + benchmark harness
+- [ ] **M3** — Collection screen (catalogue already seeded: 67 rules)
 - [ ] **M4** — Vocab of the day
 - [ ] **M5** — Streaming + polish
 - [ ] **M6** — Guardrails

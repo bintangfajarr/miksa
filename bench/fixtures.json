@@ -1,0 +1,272 @@
+{
+  "description": "Benchmark fixtures for the M2 model evaluation (SDD §8).",
+  "notes": [
+    "Each case is a message a real B1 Indonesian learner might plausibly send,",
+    "written in the code-switched register the app is built for. `expect` lists",
+    "the rule ids a competent tutor should catch.",
+    "",
+    "Three properties are deliberately built in:",
+    "",
+    "1. CLEAN CASES. Six messages contain no English error at all. A model that",
+    "   invents corrections for these is worse than useless — it teaches wrong",
+    "   rules and demoralises the learner (SDD §10). False positives are scored",
+    "   separately from misses for exactly this reason.",
+    "",
+    "2. INDONESIAN THAT MUST NOT BE TOUCHED. Every case mixes languages. Any",
+    "   correction whose `original` is Indonesian is a policy violation, not a",
+    "   grammar mistake, and is counted as such.",
+    "",
+    "3. MULTI-ERROR CASES. Some messages carry more errors than the three-per-",
+    "   turn cap allows. These test prioritisation, not recall: `expect` lists",
+    "   everything present, and scoring only requires the model to find some of",
+    "   them without hallucinating extras."
+  ],
+  "cases": [
+    {
+      "id": "c01",
+      "message": "halo! aku baru mulai belajar english, aku butuh roadmap buat improve grammar ku",
+      "expect": ["article-indefinite"],
+      "note": "'need roadmap' — missing article."
+    },
+    {
+      "id": "c02",
+      "message": "kemarin aku udah submit tugasnya. I already eat lunch before the deadline jadi ga kelaperan",
+      "expect": ["tense-present-perfect"],
+      "note": "'already eat' → 'have already eaten'."
+    },
+    {
+      "id": "c03",
+      "message": "temenku itu rajin banget, he go to campus every morning even weekend",
+      "expect": ["agreement-third-person-s"],
+      "note": "'he go' → 'he goes'."
+    },
+    {
+      "id": "c04",
+      "message": "aku bingung nih, do you know what should I do kalau dosennya ga bales email?",
+      "expect": ["question-embedded"],
+      "note": "Embedded question keeps statement order."
+    },
+    {
+      "id": "c05",
+      "message": "besok ada meeting, let us discuss about the schedule ya",
+      "expect": ["prep-collocation"],
+      "note": "'discuss about' → 'discuss'."
+    },
+    {
+      "id": "c06",
+      "message": "aku suka kelas itu sih, I go always to the library after that class",
+      "expect": ["adv-frequency-position"],
+      "note": "Frequency adverb before the main verb."
+    },
+    {
+      "id": "c07",
+      "message": "I tried it, it did not work. mungkin ada yang salah sama setting nya",
+      "expect": ["punct-comma-splice"],
+      "note": "Two independent clauses joined by a comma."
+    },
+    {
+      "id": "c08",
+      "message": "semalem aku nyesel banget. if I knew, I would tell you about the deadline",
+      "expect": ["conditional-third"],
+      "note": "Past regret needs the third conditional."
+    },
+    {
+      "id": "c09",
+      "message": "aku punya three book about UI design, semuanya bagus sih",
+      "expect": ["noun-plural-s"],
+      "note": "'three book' → 'three books'."
+    },
+    {
+      "id": "c10",
+      "message": "dosen pembimbingku baik banget, she gave me some good advices kemarin",
+      "expect": ["noun-uncountable"],
+      "note": "'advice' is uncountable."
+    },
+    {
+      "id": "c11",
+      "message": "sorry telat bales, I very tired today gara-gara begadang",
+      "expect": ["verb-missing-be"],
+      "note": "Missing copula before adjective."
+    },
+    {
+      "id": "c12",
+      "message": "kelasnya mulai pagi banget, the class starts in 8 AM",
+      "expect": ["prep-time"],
+      "note": "'at' for clock times."
+    },
+    {
+      "id": "c13",
+      "message": "aku ga terlalu jago sih, I am good in mathematics tapi ga di statistik",
+      "expect": ["prep-adjective"],
+      "note": "'good at', not 'good in'."
+    },
+    {
+      "id": "c14",
+      "message": "topiknya ngebosenin, I am very boring with this subject",
+      "expect": ["adj-ed-ing"],
+      "note": "'bored' describes the person."
+    },
+    {
+      "id": "c15",
+      "message": "menurutku metodenya lebih gampang, this method is more easier than the old one",
+      "expect": ["adj-comparative"],
+      "note": "Double comparative."
+    },
+    {
+      "id": "c16",
+      "message": "dia lancar banget ngomongnya, she speaks English very good",
+      "expect": ["adv-vs-adjective"],
+      "note": "'well', not 'good'."
+    },
+    {
+      "id": "c17",
+      "message": "aku pengen banget bisa lancar, I want improve my speaking skill",
+      "expect": ["verb-to-infinitive"],
+      "note": "'want to improve'."
+    },
+    {
+      "id": "c18",
+      "message": "aku tertarik sama topik itu, I am interested in learn more about machine learning",
+      "expect": ["verb-gerund-after-preposition"],
+      "note": "Gerund after a preposition."
+    },
+    {
+      "id": "c19",
+      "message": "dia bisa tiga bahasa loh, she can speaks Indonesian English and Mandarin",
+      "expect": ["verb-modal-bare-infinitive"],
+      "note": "Bare infinitive after a modal."
+    },
+    {
+      "id": "c20",
+      "message": "kemarin aku ga masuk, I did not went to the class karena sakit",
+      "expect": ["verb-double-marking"],
+      "note": "'did not go', not 'did not went'."
+    },
+    {
+      "id": "c21",
+      "message": "rame banget tadi di kantin, there is many people waiting in line",
+      "expect": ["agreement-there-is-are"],
+      "note": "'there are' with a plural."
+    },
+    {
+      "id": "c22",
+      "message": "laptop itu punya aku, that laptop is my",
+      "expect": ["pron-possessive"],
+      "note": "'mine' stands alone."
+    },
+    {
+      "id": "c23",
+      "message": "dosen yang ngajar kita kemarin baik, the lecturer which taught us is very patient",
+      "expect": ["pron-relative"],
+      "note": "'who' for people."
+    },
+    {
+      "id": "c24",
+      "message": "aku lagi nunggu temenku, I am waiting my friend di depan perpus",
+      "expect": ["prep-missing"],
+      "note": "'waiting for'."
+    },
+    {
+      "id": "c25",
+      "message": "dia bilang ke aku deadline nya mundur, he said me that the deadline changed",
+      "expect": ["word-choice-say-tell"],
+      "note": "'told me', not 'said me'."
+    },
+    {
+      "id": "c26",
+      "message": "nanti malem aku harus ngerjain tugas, I need to make my homework tonight",
+      "expect": ["word-choice-make-do"],
+      "note": "'do homework'."
+    },
+    {
+      "id": "c27",
+      "message": "gimana kalau kita ketemu jam tiga? how if we meet at three?",
+      "expect": ["style-literal-translation"],
+      "note": "Literal translation of 'gimana kalau'."
+    },
+    {
+      "id": "c28",
+      "message": "capek sih tadi, although I was tired, but I finished the report",
+      "expect": ["clause-because-although"],
+      "note": "'although' and 'but' duplicate the same link."
+    },
+    {
+      "id": "c29",
+      "message": "aku udah kirim emailnya. i study english every monday sama tuesday",
+      "expect": ["punct-capital"],
+      "note": "Sentence start, language name, weekday names."
+    },
+    {
+      "id": "c30",
+      "message": "kalau besok hujan gimana ya, if it will rain, I will stay at home",
+      "expect": ["conditional-first"],
+      "note": "No 'will' in the if-clause."
+    },
+    {
+      "id": "c31",
+      "message": "aku baru nyampe pas kelasnya udah mulai, when I arrived the class already started",
+      "expect": ["tense-past-perfect"],
+      "note": "Earlier past event needs past perfect."
+    },
+    {
+      "id": "c32",
+      "message": "he go to campus and he don't have much friends there, tapi dia happy aja sih",
+      "expect": ["agreement-third-person-s", "noun-countable-quantifier"],
+      "note": "Multi-error: tests prioritisation under the three-correction cap."
+    },
+    {
+      "id": "c33",
+      "message": "yesterday i go to the seminar, there is many speaker and i very interested with the topic",
+      "expect": [
+        "tense-past-simple",
+        "agreement-there-is-are",
+        "noun-plural-s",
+        "verb-missing-be",
+        "punct-capital"
+      ],
+      "note": "Deliberately overloaded — more errors than the cap allows."
+    },
+    {
+      "id": "c34",
+      "message": "makasih ya udah bantuin! I really appreciate your help with the assignment.",
+      "expect": [],
+      "note": "CLEAN. Correcting this is a false positive."
+    },
+    {
+      "id": "c35",
+      "message": "aku lagi nyiapin presentasi buat besok. I have finished the slides, but I still need to practice.",
+      "expect": [],
+      "note": "CLEAN, and uses present perfect correctly. A model that 'fixes' this is actively harmful."
+    },
+    {
+      "id": "c36",
+      "message": "gimana kabarmu? hope everything is going well on your side.",
+      "expect": [],
+      "note": "CLEAN. Informal but correct."
+    },
+    {
+      "id": "c37",
+      "message": "kemarin aku ikut webinar tentang AI. It was interesting, although the speaker talked too fast.",
+      "expect": [],
+      "note": "CLEAN, with a correct 'although' this time."
+    },
+    {
+      "id": "c38",
+      "message": "aku belum paham sama materinya. Could you explain it again, please?",
+      "expect": [],
+      "note": "CLEAN. 'explain it again' is correct; 'repeat again' would not be."
+    },
+    {
+      "id": "c39",
+      "message": "besok aku ada janji sama dosen pembimbing, jadi mungkin aku telat dikit ke grup meeting nya",
+      "expect": [],
+      "note": "CLEAN — entirely Indonesian. Any correction here violates the never-correct-Indonesian policy."
+    },
+    {
+      "id": "c40",
+      "message": "aku pengen cerita tapi susah ngomongnya, kayak gimana ya... intinya aku merasa kurang percaya diri kalau presentasi pakai english",
+      "expect": [],
+      "note": "CLEAN Indonesian, but rich in vocab_gaps: 'percaya diri', 'kurang', 'intinya'."
+    }
+  ]
+}
