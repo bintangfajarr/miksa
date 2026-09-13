@@ -19,10 +19,15 @@ minute**, shared across the whole account.
 > extracted in minutes and a leaked key gets drained by bots. It goes into a
 > Supabase secret and nowhere else.
 
-## 2. Run the quota migration
+## 2. Run the remaining migrations
 
-Dashboard → **SQL Editor** → paste
-[`supabase/migrations/0002_quota.sql`](../supabase/migrations/0002_quota.sql) → run.
+Dashboard → **SQL Editor**, then run in order:
+
+1. [`supabase/migrations/0002_quota.sql`](../supabase/migrations/0002_quota.sql)
+2. [`supabase/migrations/0003_streak.sql`](../supabase/migrations/0003_streak.sql)
+
+Also re-run [`supabase/seed.sql`](../supabase/seed.sql) — the catalogue grew
+from 8 rules to 67. It upserts, so running it again is safe.
 
 This adds three functions:
 
@@ -34,7 +39,12 @@ This adds three functions:
 
 The two mutating ones are revoked from `anon` and `authenticated` on purpose: a
 client that could increment or reset its own counter would make the cap
-decorative.
+decorative. The same applies to `touch_streak` in 0003.
+
+> **On the streak and timezones.** `0003_streak.sql` computes days in
+> `Asia/Jakarta`, not UTC. A session at 23:00 WIB is 16:00 UTC — the same UTC
+> day as that morning's 08:00 session. Computing in UTC would silently merge
+> two local days into one and break a streak the user can see they earned.
 
 ## 3. Install the Supabase CLI
 

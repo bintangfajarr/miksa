@@ -21,6 +21,7 @@ import {
   useRuleMap,
   useSendMessage,
 } from '../hooks/useChat';
+import { useStreak } from '../hooks/useProfile';
 import { useSession } from '../hooks/useSession';
 import { theme } from '../theme';
 import type { Message } from '../types/database';
@@ -33,6 +34,7 @@ export function ChatScreen() {
   const corrections = useCorrections(ready);
   const rules = useRuleMap(ready);
   const quota = useQuota(ready);
+  const streak = useStreak(ready);
   const send = useSendMessage();
   const dismiss = useDismissCorrection();
 
@@ -83,6 +85,7 @@ export function ChatScreen() {
   const remaining = quota.data
     ? Math.max(quota.data.cap - quota.data.used, 0)
     : null;
+  const streakDays = streak.data?.streak_days ?? 0;
 
   return (
     <KeyboardAvoidingView
@@ -90,7 +93,14 @@ export function ChatScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.header}>
-        <Text style={styles.brand}>Miksa</Text>
+        <View style={styles.headerLeft}>
+          <Text style={styles.brand}>Miksa</Text>
+          {streakDays > 0 && (
+            <View style={styles.streak}>
+              <Text style={styles.streakText}>🔥 {streakDays}</Text>
+            </View>
+          )}
+        </View>
         {remaining != null && (
           <Text style={[styles.quota, exhausted && styles.quotaBad]}>
             {remaining} chat tersisa
@@ -225,12 +235,24 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.color.border,
   },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.space(2),
+  },
   brand: {
     color: theme.color.text,
     fontSize: 20,
     fontWeight: '700',
     letterSpacing: -0.3,
   },
+  streak: {
+    backgroundColor: theme.color.surfaceAlt,
+    borderRadius: theme.radius.sm,
+    paddingHorizontal: theme.space(2),
+    paddingVertical: 2,
+  },
+  streakText: { color: theme.color.text, fontSize: 12, fontWeight: '600' },
   quota: { color: theme.color.textMuted, fontSize: 12 },
   quotaBad: { color: theme.color.wrong },
   list: { padding: theme.space(4), gap: theme.space(3), flexGrow: 1 },

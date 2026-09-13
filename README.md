@@ -69,16 +69,17 @@ endpoint is in [`docs/DEPLOY.md`](docs/DEPLOY.md).
 ### Layout
 
 ```
-App.tsx                        entry point
+App.tsx                        entry point, tab shell, cache hydration
 src/
-  components/                  CorrectionCard
-  hooks/                       useSession, useChat
-  lib/                         supabase client, api, env, secure storage
-  screens/                     ChatScreen
+  components/                  CorrectionCard, TabBar
+  hooks/                       useSession, useChat, useProfile
+  lib/                         supabase client, api, env, storage, persist
+  screens/                     Chat, Collection, Profile
   types/database.ts            hand-written until the schema settles
 supabase/
   migrations/0001_init.sql     schema + RLS
   migrations/0002_quota.sql    atomic quota reservation + kill switch
+  migrations/0003_streak.sql   streak tracking, computed in Asia/Jakarta
   functions/chat/              the Edge Function that holds the API key
   functions/_shared/prompt.ts  persona, JSON schema, output validation
   seed.sql                     67-rule grammar catalogue
@@ -96,10 +97,24 @@ docs/
 - [x] **M0** — Skeleton: Expo app, anonymous auth, one query rendered
 - [x] **M1** — Proxy + first reply
 - [x] **M2** — Structured corrections + benchmark harness
-- [ ] **M3** — Collection screen (catalogue already seeded: 67 rules)
+- [ ] **M3** — Collection screen — *blocked on the benchmark below*
 - [ ] **M4** — Vocab of the day
-- [ ] **M5** — Streaming + polish
+- [~] **M5** — Partial: tabs, streak, offline cache, profile settings
 - [ ] **M6** — Guardrails
 - [ ] **M7** — Ship it
 
 See §8 of the SDD for what each milestone means.
+
+### Next step: run the benchmark
+
+M3 ranks your errors by `rule_id`, so its value depends entirely on those ids
+being accurate — and that is unverified. Before building on it:
+
+```powershell
+$env:OPENROUTER_API_KEY = "sk-or-v1-..."
+node bench/run.mjs --limit 10 --verbose
+```
+
+No Supabase or phone needed, just a free API key. It prints PASS or FAIL
+against the 80% bar in SDD §8. If it fails, switch models with
+`supabase secrets set MODEL=...` — no redeploy. See [`bench/`](bench/README.md).

@@ -111,6 +111,14 @@ export type Database = {
         Args: Record<string, never>;
         Returns: { used: number; cap: number; enabled: boolean }[];
       };
+      get_streak: {
+        Args: Record<string, never>;
+        Returns: {
+          streak_days: number;
+          last_active_on: string | null;
+          active_today: boolean;
+        }[];
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

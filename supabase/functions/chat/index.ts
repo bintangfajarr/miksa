@@ -256,6 +256,22 @@ Deno.serve(async (req) => {
       console.error('Failed to persist reply:', replyError.message);
     }
 
+    // --- Streak -------------------------------------------------------------
+    // After a successful turn, never before: a failed request should not count
+    // as showing up. Non-fatal if it fails — a missed streak tick is not worth
+    // losing the reply over.
+    let streak: { streak_days: number; is_milestone: boolean } | null = null;
+    {
+      const { data, error } = await admin
+        .rpc('touch_streak', { p_user_id: userId })
+        .single<{ streak_days: number; is_new_day: boolean; is_milestone: boolean }>();
+      if (error) {
+        console.error('Streak update failed:', error.message);
+      } else if (data) {
+        streak = { streak_days: data.streak_days, is_milestone: data.is_milestone };
+      }
+    }
+
     // --- Persist corrections ----------------------------------------------
     let savedCorrections: unknown[] = [];
     if (turn.corrections.length > 0) {
@@ -290,6 +306,7 @@ Deno.serve(async (req) => {
       user_message_id: userMessage.id,
       assistant_message_id: assistantMessage?.id ?? null,
       quota: { used: quota.used, cap: quota.cap },
+      streak,
       model,
       usage: payload?.usage ?? null,
     });

@@ -173,6 +173,8 @@ export function useSendMessage() {
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: ['messages'] });
       void qc.invalidateQueries({ queryKey: ['corrections'] });
+      // A successful turn may have advanced the streak.
+      void qc.invalidateQueries({ queryKey: ['streak'] });
     },
   });
 }

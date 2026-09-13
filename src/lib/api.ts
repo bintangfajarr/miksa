@@ -17,6 +17,7 @@ export interface ChatResponse {
   user_message_id: number;
   assistant_message_id: number | null;
   quota: { used: number; cap: number };
+  streak?: { streak_days: number; is_milestone: boolean } | null;
   model: string;
   usage?: { prompt_tokens?: number; completion_tokens?: number } | null;
 }
